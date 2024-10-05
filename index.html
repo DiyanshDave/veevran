@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Earth-Centric Interactive Orrery</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #000;
+            color: #fff;
+            overflow: hidden;
+        }
+        #orrery-container {
+            width: 800px;
+            height: 800px;
+            position: relative;
+            overflow: hidden;
+            border-radius: 50%;
+            border: 1px solid #333;
+        }
+        #orrery {
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            transform-origin: center;
+            transition: transform 0.3s ease;
+        }
+        .celestial-body {
+            position: absolute;
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+        }
+        #earth {
+            width: 30px;
+            height: 30px;
+            background-color: #1E90FF;
+            top: 50%;
+            left: 50%;
+            z-index: 10;
+            box-shadow: 0 0 10px #1E90FF;
+        }
+        .trajectory {
+            position: absolute;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+        .label {
+            position: absolute;
+            color: #fff;
+            font-size: 12px;
+            text-shadow: 0 0 2px #000;
+            pointer-events: none;
+        }
+        #info {
+            margin-top: 20px;
+            text-align: center;
+        }
+        #controls {
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div id="orrery-container">
+        <div id="orrery">
+            <div id="earth" class="celestial-body"></div>
+        </div>
+    </div>
+    <div id="info">Use mouse wheel to zoom, drag to rotate</div>
+    <div id="controls">
+        <button id="reset">Reset View</button>
+    </div>
+
+    <script>
+        const orrery = document.getElementById('orrery');
+        const orreryContainer = document.getElementById('orrery-container');
+        const infoDiv = document.getElementById('info');
+        const resetButton = document.getElementById('reset');
+        const centerX = 400;
+        const centerY = 400;
+
+        const celestialBodies = [
+            { name: "Sun", color: "#FFD700", size: 40, distance: 300, speed: 0.005 },
+            { name: "Mercury", color: "#8C7853", size: 8, distance: 100, speed: 0.008 },
+            { name: "Venus", color: "#FFA500", size: 15, distance: 180, speed: 0.007 },
+            { name: "Mars", color: "#FF4500", size: 12, distance: 240, speed: 0.006 },
+            { name: "Jupiter", color: "#DEB887", size: 25, distance: 350, speed: 0.004 },
+            { name: "Saturn", color: "#F4A460", size: 22, distance: 380, speed: 0.003 },
+            { name: "Uranus", color: "#00FFFF", size: 18, distance: 400, speed: 0.002 },
+            { name: "Neptune", color: "#4169E1", size: 17, distance: 420, speed: 0.001 },
+            { name: "Moon", color: "#D3D3D3", size: 6, distance: 40, speed: 0.02 },
+            { name: "ISS", color: "#FFFFFF", size: 3, distance: 20, speed: 0.1 },
+            { name: "Asteroid", color: "#8B4513", size: 4, distance: 280, speed: 0.009 },
+            { name: "Comet", color: "#00CED1", size: 4, distance: 450, speed: 0.0015, tail: true }
+        ];
+
+        function createCelestialBody(body) {
+            const element = document.createElement('div');
+            element.classList.add('celestial-body');
+            element.style.width = `${body.size}px`;
+            element.style.height = `${body.size}px`;
+            element.style.backgroundColor = body.color;
+            
+            if (body.tail) {
+                element.style.boxShadow = `0 0 10px 2px ${body.color}`;
+            }
+
+            orrery.appendChild(element);
+
+            const trajectory = document.createElement('div');
+            trajectory.classList.add('trajectory');
+            trajectory.style.width = `${body.distance * 2}px`;
+            trajectory.style.height = `${body.distance * 2}px`;
+            orrery.appendChild(trajectory);
+
+            const label = document.createElement('div');
+            label.classList.add('label');
+            label.textContent = body.name;
+            orrery.appendChild(label);
+
+            element.addEventListener('mouseover', () => {
+                infoDiv.innerHTML = `Name: ${body.name}<br>
+                                     Distance from Earth: ${body.distance} million km`;
+            });
+
+            element.addEventListener('mouseout', () => {
+                infoDiv.innerHTML = 'Use mouse wheel to zoom, drag to rotate';
+            });
+
+            return { element, label };
+        }
+
+        const bodies = celestialBodies.map(body => ({
+            ...body,
+            ...createCelestialBody(body)
+        }));
+
+        function animate() {
+            const time = Date.now() * 0.001;
+            
+            bodies.forEach(body => {
+                const x = centerX + Math.cos(time * body.speed) * body.distance;
+                const y = centerY + Math.sin(time * body.speed) * body.distance;
+                body.element.style.left = `${x}px`;
+                body.element.style.top = `${y}px`;
+                body.label.style.left = `${x}px`;
+                body.label.style.top = `${y + body.size / 2 + 10}px`;
+            });
+
+            requestAnimationFrame(animate);
+        }
+
+        animate();
+
+        // Zooming and rotating functionality
+        let scale = 1;
+        let rotation = 0;
+        let isDragging = false;
+        let startX, startY;
+
+        orreryContainer.addEventListener('wheel', (e) => {
+            e.preventDefault();
+            const delta = e.deltaY > 0 ? 0.9 : 1.1;
+            scale *= delta;
+            scale = Math.max(0.5, Math.min(scale, 3));
+            updateTransform();
+        });
+
+        orreryContainer.addEventListener('mousedown', (e) => {
+            isDragging = true;
+            startX = e.clientX;
+            startY = e.clientY;
+        });
+
+        document.addEventListener('mousemove', (e) => {
+            if (isDragging) {
+                const dx = e.clientX - startX;
+                const dy = e.clientY - startY;
+                rotation += dx * 0.5;
+                startX = e.clientX;
+                startY = e.clientY;
+                updateTransform();
+            }
+        });
+
+        document.addEventListener('mouseup', () => {
+            isDragging = false;
+        });
+
+        resetButton.addEventListener('click', () => {
+            scale = 1;
+            rotation = 0;
+            updateTransform();
+        });
+
+        function updateTransform() {
+            orrery.style.transform = `scale(${scale}) rotate(${rotation}deg)`;
+        }
+    </script>
+</body>
+</html>
