@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Earth-Centric Interactive Orrery</title>
+    <title>Interactive Solar System Orrery</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -37,14 +37,14 @@
             border-radius: 50%;
             transform: translate(-50%, -50%);
         }
-        #earth {
-            width: 30px;
-            height: 30px;
-            background-color: #1E90FF;
+        #sun {
+            width: 60px;
+            height: 60px;
+            background-color: #FFD700;
             top: 50%;
             left: 50%;
             z-index: 10;
-            box-shadow: 0 0 10px #1E90FF;
+            box-shadow: 0 0 20px #FFD700;
         }
         .trajectory {
             position: absolute;
@@ -67,18 +67,27 @@
         }
         #controls {
             margin-top: 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        #speed-control {
+            width: 200px;
+            margin: 10px 0;
         }
     </style>
 </head>
 <body>
     <div id="orrery-container">
         <div id="orrery">
-            <div id="earth" class="celestial-body"></div>
+            <div id="sun" class="celestial-body"></div>
         </div>
     </div>
     <div id="info">Use mouse wheel to zoom, drag to rotate</div>
     <div id="controls">
         <button id="reset">Reset View</button>
+        <input type="range" id="speed-control" min="0" max="2" step="0.1" value="1">
+        <label for="speed-control">Revolution Speed: <span id="speed-value">1x</span></label>
     </div>
 
     <script>
@@ -86,22 +95,29 @@
         const orreryContainer = document.getElementById('orrery-container');
         const infoDiv = document.getElementById('info');
         const resetButton = document.getElementById('reset');
+        const speedControl = document.getElementById('speed-control');
+        const speedValue = document.getElementById('speed-value');
         const centerX = 400;
         const centerY = 400;
 
         const celestialBodies = [
-            { name: "Sun", color: "#FFD700", size: 40, distance: 300, speed: 0.005 },
             { name: "Mercury", color: "#8C7853", size: 8, distance: 100, speed: 0.008 },
-            { name: "Venus", color: "#FFA500", size: 15, distance: 180, speed: 0.007 },
-            { name: "Mars", color: "#FF4500", size: 12, distance: 240, speed: 0.006 },
-            { name: "Jupiter", color: "#DEB887", size: 25, distance: 350, speed: 0.004 },
-            { name: "Saturn", color: "#F4A460", size: 22, distance: 380, speed: 0.003 },
-            { name: "Uranus", color: "#00FFFF", size: 18, distance: 400, speed: 0.002 },
-            { name: "Neptune", color: "#4169E1", size: 17, distance: 420, speed: 0.001 },
-            { name: "Moon", color: "#D3D3D3", size: 6, distance: 40, speed: 0.02 },
-            { name: "ISS", color: "#FFFFFF", size: 3, distance: 20, speed: 0.1 },
-            { name: "Asteroid", color: "#8B4513", size: 4, distance: 280, speed: 0.009 },
-            { name: "Comet", color: "#00CED1", size: 4, distance: 450, speed: 0.0015, tail: true }
+            { name: "Venus", color: "#FFA500", size: 15, distance: 140, speed: 0.007 },
+            { name: "Earth", color: "#1E90FF", size: 16, distance: 180, speed: 0.006 },
+            { name: "Mars", color: "#FF4500", size: 14, distance: 220, speed: 0.005 },
+            { name: "Jupiter", color: "#DEB887", size: 30, distance: 300, speed: 0.004 },
+            { name: "Saturn", color: "#F4A460", size: 28, distance: 360, speed: 0.003 },
+            { name: "Uranus", color: "#00FFFF", size: 22, distance: 400, speed: 0.002 },
+            { name: "Neptune", color: "#4169E1", size: 21, distance: 440, speed: 0.001 },
+            { name: "Pluto", color: "#8B8989", size: 6, distance: 480, speed: 0.0009 },
+            { name: "Moon", color: "#D3D3D3", size: 6, distance: 195, speed: 0.02, parent: "Earth" },
+            { name: "Phobos", color: "#8B4513", size: 3, distance: 228, speed: 0.025, parent: "Mars" },
+            { name: "Deimos", color: "#A0522D", size: 2, distance: 232, speed: 0.02, parent: "Mars" },
+            { name: "Ganymede", color: "#F0E68C", size: 8, distance: 315, speed: 0.015, parent: "Jupiter" },
+            { name: "Europa", color: "#FFF8DC", size: 6, distance: 310, speed: 0.018, parent: "Jupiter" },
+            { name: "Titan", color: "#DAA520", size: 8, distance: 375, speed: 0.012, parent: "Saturn" },
+            { name: "Enceladus", color: "#E0FFFF", size: 4, distance: 368, speed: 0.016, parent: "Saturn" },
+            { name: "Halley's Comet", color: "#00CED1", size: 4, distance: 500, speed: 0.0005, tail: true }
         ];
 
         function createCelestialBody(body) {
@@ -130,7 +146,7 @@
 
             element.addEventListener('mouseover', () => {
                 infoDiv.innerHTML = `Name: ${body.name}<br>
-                                     Distance from Earth: ${body.distance} million km`;
+                                     Distance from Sun: ${body.distance} million km`;
             });
 
             element.addEventListener('mouseout', () => {
@@ -145,12 +161,23 @@
             ...createCelestialBody(body)
         }));
 
+        let speedMultiplier = 1;
+
         function animate() {
-            const time = Date.now() * 0.001;
+            const time = Date.now() * 0.001 * speedMultiplier;
             
             bodies.forEach(body => {
-                const x = centerX + Math.cos(time * body.speed) * body.distance;
-                const y = centerY + Math.sin(time * body.speed) * body.distance;
+                let x, y;
+                if (body.parent) {
+                    const parent = bodies.find(b => b.name === body.parent);
+                    const parentX = centerX + Math.cos(time * parent.speed) * parent.distance;
+                    const parentY = centerY + Math.sin(time * parent.speed) * parent.distance;
+                    x = parentX + Math.cos(time * body.speed) * (body.distance - parent.distance);
+                    y = parentY + Math.sin(time * body.speed) * (body.distance - parent.distance);
+                } else {
+                    x = centerX + Math.cos(time * body.speed) * body.distance;
+                    y = centerY + Math.sin(time * body.speed) * body.distance;
+                }
                 body.element.style.left = `${x}px`;
                 body.element.style.top = `${y}px`;
                 body.label.style.left = `${x}px`;
@@ -201,6 +228,11 @@
             scale = 1;
             rotation = 0;
             updateTransform();
+        });
+
+        speedControl.addEventListener('input', (e) => {
+            speedMultiplier = parseFloat(e.target.value);
+            speedValue.textContent = `${speedMultiplier.toFixed(1)}x`;
         });
 
         function updateTransform() {
