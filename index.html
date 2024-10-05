@@ -3,241 +3,214 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Interactive Solar System Orrery</title>
+    <title>2D Orrery</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
             margin: 0;
-            background-color: #000;
-            color: #fff;
             overflow: hidden;
+            background-color: black; /* Background color */
+            color: white; /* Default text color */
+            font-family: Arial, sans-serif;
         }
-        #orrery-container {
-            width: 800px;
-            height: 800px;
-            position: relative;
-            overflow: hidden;
-            border-radius: 50%;
-            border: 1px solid #333;
-        }
-        #orrery {
-            width: 100%;
-            height: 100%;
+        #zoom-level {
             position: absolute;
-            transform-origin: center;
-            transition: transform 0.3s ease;
+            top: 10px;
+            left: 10px;
+            z-index: 100;
+            color: white;
+            font-size: 18px;
         }
-        .celestial-body {
+        #fps {
             position: absolute;
-            border-radius: 50%;
-            transform: translate(-50%, -50%);
-        }
-        #sun {
-            width: 60px;
-            height: 60px;
-            background-color: #FFD700;
-            top: 50%;
-            left: 50%;
-            z-index: 10;
-            box-shadow: 0 0 20px #FFD700;
-        }
-        .trajectory {
-            position: absolute;
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            border-radius: 50%;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-        }
-        .label {
-            position: absolute;
-            color: #fff;
-            font-size: 12px;
-            text-shadow: 0 0 2px #000;
-            pointer-events: none;
-        }
-        #info {
-            margin-top: 20px;
-            text-align: center;
-        }
-        #controls {
-            margin-top: 10px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-        #speed-control {
-            width: 200px;
-            margin: 10px 0;
+            top: 30px;
+            left: 10px;
+            z-index: 100;
+            color: white;
+            font-size: 18px;
         }
     </style>
 </head>
 <body>
-    <div id="orrery-container">
-        <div id="orrery">
-            <div id="sun" class="celestial-body"></div>
-        </div>
-    </div>
-    <div id="info">Use mouse wheel to zoom, drag to rotate</div>
-    <div id="controls">
-        <button id="reset">Reset View</button>
-        <input type="range" id="speed-control" min="0" max="2" step="0.1" value="1">
-        <label for="speed-control">Revolution Speed: <span id="speed-value">1x</span></label>
-    </div>
+    <canvas id="orreryCanvas"></canvas>
+    <div id="zoom-level">Zoom: 100%</div>
+    <div id="fps">FPS: 0</div>
 
     <script>
-        const orrery = document.getElementById('orrery');
-        const orreryContainer = document.getElementById('orrery-container');
-        const infoDiv = document.getElementById('info');
-        const resetButton = document.getElementById('reset');
-        const speedControl = document.getElementById('speed-control');
-        const speedValue = document.getElementById('speed-value');
-        const centerX = 400;
-        const centerY = 400;
+        const canvas = document.getElementById('orreryCanvas');
+        const ctx = canvas.getContext('2d');
 
-        const celestialBodies = [
-            { name: "Mercury", color: "#8C7853", size: 8, distance: 100, speed: 0.008 },
-            { name: "Venus", color: "#FFA500", size: 15, distance: 140, speed: 0.007 },
-            { name: "Earth", color: "#1E90FF", size: 16, distance: 180, speed: 0.006 },
-            { name: "Mars", color: "#FF4500", size: 14, distance: 220, speed: 0.005 },
-            { name: "Jupiter", color: "#DEB887", size: 30, distance: 300, speed: 0.004 },
-            { name: "Saturn", color: "#F4A460", size: 28, distance: 360, speed: 0.003 },
-            { name: "Uranus", color: "#00FFFF", size: 22, distance: 400, speed: 0.002 },
-            { name: "Neptune", color: "#4169E1", size: 21, distance: 440, speed: 0.001 },
-            { name: "Pluto", color: "#8B8989", size: 6, distance: 480, speed: 0.0009 },
-            { name: "Moon", color: "#D3D3D3", size: 6, distance: 195, speed: 0.02, parent: "Earth" },
-            { name: "Phobos", color: "#8B4513", size: 3, distance: 228, speed: 0.025, parent: "Mars" },
-            { name: "Deimos", color: "#A0522D", size: 2, distance: 232, speed: 0.02, parent: "Mars" },
-            { name: "Ganymede", color: "#F0E68C", size: 8, distance: 315, speed: 0.015, parent: "Jupiter" },
-            { name: "Europa", color: "#FFF8DC", size: 6, distance: 310, speed: 0.018, parent: "Jupiter" },
-            { name: "Titan", color: "#DAA520", size: 8, distance: 375, speed: 0.012, parent: "Saturn" },
-            { name: "Enceladus", color: "#E0FFFF", size: 4, distance: 368, speed: 0.016, parent: "Saturn" },
-            { name: "Halley's Comet", color: "#00CED1", size: 4, distance: 500, speed: 0.0005, tail: true }
+        // Resize canvas to fit the window
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        // Handle window resize
+        window.addEventListener('resize', () => {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        });
+
+        // Define Earth at the center
+        const earth = {
+            x: canvas.width / 2,
+            y: canvas.height / 2,
+            radius: 20,
+            color: 'blue'
+        };
+
+        // Define other planets
+        const planets = [
+        { name: 'sun', distance: 0, radius:40, color: 'orange', speed: 0 },
+            { name: 'Mercury', distance: 60, radius: 5, color: 'gray', speed: 2 },
+            { name: 'Venus', distance: 90, radius: 8, color: 'yellow', speed:  1.5},
+            { name: 'Earth', distance: 130, radius: 20, color: 'blue', speed: 1 },
+            { name: 'Moon', distance: 150, radius: 5, color: 'white', speed: 2 },
+            { name: 'Mars', distance: 180, radius: 7, color: 'red', speed: 0.9 },
+            { name: 'Jupiter', distance: 220, radius: 12, color: 'brown', speed: 0.65 },
+            { name: 'Saturn', distance: 270, radius: 10, color: 'gold', speed: 0.6 },
+            { name: 'Uranus', distance: 320, radius: 9, color: 'lightblue', speed: 0.5 },
+            { name: 'Neptune', distance: 360, radius: 8, color: 'darkblue', speed: 0.4 },
         ];
 
-        function createCelestialBody(body) {
-            const element = document.createElement('div');
-            element.classList.add('celestial-body');
-            element.style.width = `${body.size}px`;
-            element.style.height = `${body.size}px`;
-            element.style.backgroundColor = body.color;
-            
-            if (body.tail) {
-                element.style.boxShadow = `0 0 10px 2px ${body.color}`;
-            }
-
-            orrery.appendChild(element);
-
-            const trajectory = document.createElement('div');
-            trajectory.classList.add('trajectory');
-            trajectory.style.width = `${body.distance * 2}px`;
-            trajectory.style.height = `${body.distance * 2}px`;
-            orrery.appendChild(trajectory);
-
-            const label = document.createElement('div');
-            label.classList.add('label');
-            label.textContent = body.name;
-            orrery.appendChild(label);
-
-            element.addEventListener('mouseover', () => {
-                infoDiv.innerHTML = `Name: ${body.name}<br>
-                                     Distance from Sun: ${body.distance} million km`;
+        // Define stars
+        const stars = [];
+        for (let i = 0; i < 100; i++) {
+            stars.push({
+                x: Math.random() * canvas.width,
+                y: Math.random() * canvas.height,
+                radius: Math.random() * 1.5 + 0.5, // Increase minimum star size
+                color: `rgba(255, 255, 255, ${Math.random()})` // Random opacity for twinkling effect
             });
-
-            element.addEventListener('mouseout', () => {
-                infoDiv.innerHTML = 'Use mouse wheel to zoom, drag to rotate';
-            });
-
-            return { element, label };
         }
 
-        const bodies = celestialBodies.map(body => ({
-            ...body,
-            ...createCelestialBody(body)
-        }));
+        // Zoom and panning variables
+        let scale = 1;
+        const scaleFactor = 1.1;
+        const minScale = 0.5;
+        const maxScale = 3;
+        let isDragging = false;
+        let startX = 0;
+        let startY = 0;
+        let offsetX = 0;
+        let offsetY = 0;
+        let zoomCenterX = 0; // Center for zooming
+        let zoomCenterY = 0; // Center for zooming
+        let fpsDisplay = document.getElementById('fps');
 
-        let speedMultiplier = 1;
+        // Handle zoom with mouse wheel
+        canvas.addEventListener('wheel', (event) => {
+            event.preventDefault();
 
-        function animate() {
-            const time = Date.now() * 0.001 * speedMultiplier;
-            
-            bodies.forEach(body => {
-                let x, y;
-                if (body.parent) {
-                    const parent = bodies.find(b => b.name === body.parent);
-                    const parentX = centerX + Math.cos(time * parent.speed) * parent.distance;
-                    const parentY = centerY + Math.sin(time * parent.speed) * parent.distance;
-                    x = parentX + Math.cos(time * body.speed) * (body.distance - parent.distance);
-                    y = parentY + Math.sin(time * body.speed) * (body.distance - parent.distance);
-                } else {
-                    x = centerX + Math.cos(time * body.speed) * body.distance;
-                    y = centerY + Math.sin(time * body.speed) * body.distance;
-                }
-                body.element.style.left = `${x}px`;
-                body.element.style.top = `${y}px`;
-                body.label.style.left = `${x}px`;
-                body.label.style.top = `${y + body.size / 2 + 10}px`;
+            zoomCenterX = event.clientX - offsetX;
+            zoomCenterY = event.clientY - offsetY;
+
+            if (event.deltaY < 0) {
+                scale *= scaleFactor;
+                if (scale > maxScale) scale = maxScale;
+            } else {
+                scale /= scaleFactor;
+                if (scale < minScale) scale = minScale;
+            }
+        });
+
+        // Handle mouse down event for panning
+        canvas.addEventListener('mousedown', (event) => {
+            isDragging = true;
+            startX = event.clientX;
+            startY = event.clientY;
+        });
+
+        // Handle mouse move event for panning
+        canvas.addEventListener('mousemove', (event) => {
+            if (isDragging) {
+                const dx = event.clientX - startX;
+                const dy = event.clientY - startY;
+                startX = event.clientX;
+                startY = event.clientY;
+                offsetX += dx;
+                offsetY += dy;
+            }
+        });
+
+        // Handle mouse up and mouse leave events to stop panning
+        canvas.addEventListener('mouseup', () => {
+            isDragging = false;
+        });
+
+        canvas.addEventListener('mouseleave', () => {
+            isDragging = false;
+        });
+
+        // Animation loop
+        let angle = 20;
+        let lastTime = 0;
+        function animate(time) {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Apply transformations: translate for panning, then scale for zooming
+            ctx.save();
+            ctx.translate(offsetX, offsetY);
+            ctx.translate(earth.x, earth.y);
+            ctx.scale(scale, scale);
+            ctx.translate(-earth.x, -earth.y);
+
+            // Draw stars
+            stars.forEach(star => {
+                ctx.beginPath();
+                ctx.arc(star.x, star.y, star.radius, 0, Math.PI * 2);
+                ctx.fillStyle = star.color;
+                ctx.fill();
             });
+
+            // Draw Earth
+            ctx.beginPath();
+            ctx.arc(earth.x, earth.y, earth.radius, 0, Math.PI * 2);
+            ctx.fillStyle = earth.color;
+            ctx.fill();
+
+            // Draw and animate planets
+            planets.forEach(planet => {
+                const planetX = earth.x + planet.distance * Math.cos(angle * planet.speed);
+                const planetY = earth.y + planet.distance * Math.sin(angle * planet.speed);
+
+                // Draw orbit path
+                ctx.beginPath();
+                ctx.arc(earth.x, earth.y, planet.distance, 0, Math.PI * 2);
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
+                ctx.stroke();
+
+                // Draw planet
+                ctx.beginPath();
+                ctx.arc(planetX, planetY, planet.radius, 0, Math.PI * 2);
+                ctx.fillStyle = planet.color;
+                ctx.fill();
+
+                // Draw planet label
+                ctx.font = '12px Arial';
+                ctx.fillStyle = 'white';
+                ctx.fillText(planet.name, planetX + planet.radius + 3, planetY);
+            });
+
+            angle += 0.01;
+
+            ctx.restore(); // Restore the state
+
+            // Update zoom level display
+            const zoomLevelDisplay = document.getElementById('zoom-level');
+            if (zoomLevelDisplay) {
+                zoomLevelDisplay.textContent = `Zoom: ${Math.round(scale * 100)}%`;
+            }
+
+            // Calculate FPS
+            const currentTime = time;
+            const deltaTime = currentTime - lastTime;
+            lastTime = currentTime;
+            const fps = Math.round(1000 / deltaTime);
+            fpsDisplay.textContent = `FPS: ${fps}`;
 
             requestAnimationFrame(animate);
         }
 
         animate();
-
-        // Zooming and rotating functionality
-        let scale = 1;
-        let rotation = 0;
-        let isDragging = false;
-        let startX, startY;
-
-        orreryContainer.addEventListener('wheel', (e) => {
-            e.preventDefault();
-            const delta = e.deltaY > 0 ? 0.9 : 1.1;
-            scale *= delta;
-            scale = Math.max(0.5, Math.min(scale, 3));
-            updateTransform();
-        });
-
-        orreryContainer.addEventListener('mousedown', (e) => {
-            isDragging = true;
-            startX = e.clientX;
-            startY = e.clientY;
-        });
-
-        document.addEventListener('mousemove', (e) => {
-            if (isDragging) {
-                const dx = e.clientX - startX;
-                const dy = e.clientY - startY;
-                rotation += dx * 0.5;
-                startX = e.clientX;
-                startY = e.clientY;
-                updateTransform();
-            }
-        });
-
-        document.addEventListener('mouseup', () => {
-            isDragging = false;
-        });
-
-        resetButton.addEventListener('click', () => {
-            scale = 1;
-            rotation = 0;
-            updateTransform();
-        });
-
-        speedControl.addEventListener('input', (e) => {
-            speedMultiplier = parseFloat(e.target.value);
-            speedValue.textContent = `${speedMultiplier.toFixed(1)}x`;
-        });
-
-        function updateTransform() {
-            orrery.style.transform = `scale(${scale}) rotate(${rotation}deg)`;
-        }
     </script>
 </body>
 </html>
