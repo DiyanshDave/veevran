@@ -31,13 +31,43 @@
             margin: 5px;
             padding: 5px;
         }
-        #planet-info {
+        #object-details {
             position: absolute;
-            background-color: rgba(0, 0, 0, 0.7);
-            padding: 10px;
-            border-radius: 5px;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.9);
             display: none;
-            pointer-events: none;
+            z-index: 200;
+        }
+        #object-image {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 50%;
+            height: 100%;
+            object-fit: contain;
+        }
+        #object-info {
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 50%;
+            height: 100%;
+            padding: 20px;
+            overflow-y: auto;
+            box-sizing: border-box;
+        }
+        #close-details {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background-color: rgba(255, 255, 255, 0.3);
+            border: none;
+            color: white;
+            padding: 5px 10px;
+            cursor: pointer;
         }
         #speed-control {
             display: flex;
@@ -85,7 +115,11 @@
         <button id="toggle-orbits-btn">Hide Orbits</button>
         <button id="toggle-labels-btn">Hide Labels</button>
     </div>
-    <div id="planet-info"></div>
+    <div id="object-details">
+        <img id="object-image" src="" alt="Celestial Object">
+        <div id="object-info"></div>
+        <button id="close-details">Close</button>
+    </div>
 
     <script>
         const canvas = document.getElementById('orreryCanvas');
@@ -100,18 +134,39 @@
         });
 
         const planets = [
-            { name: 'Sun', distance: 0, radius: 40, color: 'orange', speed: 0, mass: 1.989e30 },
-            { name: 'Mercury', distance: 80, radius: 5, color: 'gray', speed: 2, mass: 3.285e23 },
-            { name: 'Venus', distance: 120, radius: 8, color: 'yellow', speed: 1.5, mass: 4.867e24 },
-            { name: 'Earth', distance: 170, radius: 10, color: 'blue', speed: 1, mass: 5.972e24 },
-            { name: 'Mars', distance: 230, radius: 7, color: 'red', speed: 0.9, mass: 6.39e23 },
-            { name: 'Jupiter', distance: 310, radius: 20, color: 'brown', speed: 0.65, mass: 1.898e27 },
-            { name: 'Saturn', distance: 400, radius: 18, color: 'gold', speed: 0.6, mass: 5.683e26 },
-            { name: 'Uranus', distance: 490, radius: 14, color: 'lightblue', speed: 0.5, mass: 8.681e25 },
-            { name: 'Neptune', distance: 580, radius: 14, color: 'darkblue', speed: 0.4, mass: 1.024e26 },
+            { name: 'Sun', distance: 0, radius: 80, color: 'orange', speed: 0, mass: 1.989e30, image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/b/b4/The_Sun_by_the_Atmospheric_Imaging_Assembly_of_NASA%27s_Solar_Dynamics_Observatory_-_20100819.jpg/640px-The_Sun_by_the_Atmospheric_Imaging_Assembly_of_NASA%27s_Solar_Dynamics_Observatory_-_20100819.jpg' },
+            { name: 'Mercury', distance: 120, radius: 10, color: 'gray', speed: 2, mass: 3.285e23, image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d9/Mercury_in_color_-_Prockter07-edit1.jpg/640px-Mercury_in_color_-_Prockter07-edit1.jpg' },
+            { name: 'Venus', distance: 180, radius: 16, color: 'yellow', speed: 1.5, mass: 4.867e24, image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/08/Venus_from_Mariner_10.jpg/640px-Venus_from_Mariner_10.jpg' },
+            { name: 'Earth', distance: 250, radius: 20, color: 'blue', speed: 1, mass: 5.972e24, image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/9/97/The_Earth_seen_from_Apollo_17.jpg/640px-The_Earth_seen_from_Apollo_17.jpg' },
+            { name: 'Mars', distance: 320, radius: 14, color: 'red', speed: 0.9, mass: 6.39e23, image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/02/OSIRIS_Mars_true_color.jpg/640px-OSIRIS_Mars_true_color.jpg' },
+            { name: 'Jupiter', distance: 420, radius: 40, color: 'brown', speed: 0.65, mass: 1.898e27, image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/2/2b/Jupiter_and_its_shrunken_Great_Red_Spot.jpg/640px-Jupiter_and_its_shrunken_Great_Red_Spot.jpg' },
+            { name: 'Saturn', distance: 540, radius: 36, color: 'gold', speed: 0.6, mass: 5.683e26, image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/c/c7/Saturn_during_Equinox.jpg/640px-Saturn_during_Equinox.jpg' },
+            { name: 'Uranus', distance: 660, radius: 28, color: 'lightblue', speed: 0.5, mass: 8.681e25, image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/3/3d/Uranus2.jpg/640px-Uranus2.jpg' },
+            { name: 'Neptune', distance: 780, radius: 28, color: 'darkblue', speed: 0.4, mass: 1.024e26, image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/6/63/Neptune_-_Voyager_2_%2829347980845%29_flatten_crop.jpg/640px-Neptune_-_Voyager_2_%2829347980845%29_flatten_crop.jpg' },
         ];
 
-        const moon = { name: 'Moon', distance: 25, radius: 3, color: 'white', speed: 12, mass: 7.34767309e22 };
+        const moon = { name: 'Moon', distance: 35, radius: 6, color: 'white', speed: 12, mass: 7.34767309e22, image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e1/FullMoon2010.jpg/640px-FullMoon2010.jpg' };
+
+        const comets = [
+            { name: 'Halley\'s Comet', distance: 900, radius: 5, color: 'cyan', speed: 0.1, tailLength: 50, image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/2/2a/Lspn_comet_halley.jpg/640px-Lspn_comet_halley.jpg' },
+            { name: 'Hale-Bopp', distance: 1000, radius: 6, color: 'lightgreen', speed: 0.08, tailLength: 60, image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/0c/Comet-Hale-Bopp-29-03-1997_hires_adj.jpg/640px-Comet-Hale-Bopp-29-03-1997_hires_adj.jpg' },
+        ];
+
+        const meteors = [];
+        for (let i = 0; i < 5; i++) {
+            meteors.push({
+                x: Math.random() * canvas.width,
+                y: Math.random() * canvas.height,
+                speed: Math.random() * 5 + 2,
+                angle: Math.random() * Math.PI * 2,
+                length: Math.random() * 20 + 10,
+            });
+        }
+
+        const satellites = [
+            { name: 'ISS', distance: 280, radius: 3, color: 'white', speed: 2, image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/04/International_Space_Station_after_undocking_of_STS-132.jpg/640px-International_Space_Station_after_undocking_of_STS-132.jpg' },
+            { name: 'Hubble', distance: 290, radius: 2, color: 'silver', speed: 1.8, image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/3/3f/HST-SM4.jpeg/640px-HST-SM4.jpeg' },
+        ];
 
         const stars = [];
         for (let i = 0; i < 100; i++) {
@@ -135,25 +190,29 @@
         const pauseBtn = document.getElementById('pause-btn');
         const toggleOrbitsBtn = document.getElementById('toggle-orbits-btn');
         const toggleLabelsBtn = document.getElementById('toggle-labels-btn');
-        const planetInfo = document.getElementById('planet-info');
         const speedSlider = document.getElementById('speed-slider');
         const speedValue = document.getElementById('speed-value');
+        const objectDetails = document.getElementById('object-details');
+        const objectImage = document.getElementById('object-image');
+        const objectInfo = document.getElementById('object-info');
+        const closeDetails = document.getElementById('close-details');
 
-        function updatePlanetInfo(planet, x, y) {
-            if (planet) {
-                planetInfo.innerHTML = `
-                    <h3>${planet.name}</h3>
-                    <p>Distance from Sun: ${planet.distance} million km</p>
-                    <p>Radius: ${planet.radius} thousand km</p>
-                    <p>Mass: ${planet.mass.toExponential(2)} kg</p>
-                `;
-                planetInfo.style.display = 'block';
-                planetInfo.style.left = `${x + 10}px`;
-                planetInfo.style.top = `${y + 10}px`;
-            } else {
-                planetInfo.style.display = 'none';
-            }
+        function showObjectDetails(object) {
+            objectImage.src = object.image;
+            objectInfo.innerHTML = `
+                <h2>${object.name}</h2>
+                <p>Distance from Sun: ${object.distance} million km</p>
+                <p>Radius: ${object.radius} thousand km</p>
+                ${object.mass ? `<p>Mass: ${object.mass.toExponential(2)} kg</p>` : ''}
+                ${object.tailLength ? `<p>Tail Length: ${object.tailLength} million km</p>` : ''}
+                <p><a href="https://en.wikipedia.org/wiki/${object.name.replace(' ', '_')}" target="_blank">Learn more on Wikipedia</a></p>
+            `;
+            objectDetails.style.display = 'block';
         }
+
+        closeDetails.addEventListener('click', () => {
+            objectDetails.style.display = 'none';
+        });
 
         pauseBtn.addEventListener('click', () => {
             paused = !paused;
@@ -196,7 +255,7 @@
             document.getElementById('zoom-level').textContent = `Zoom: ${Math.round(scale * 100)}%`;
         });
 
-        canvas.addEventListener('mousemove', (event) => {
+        canvas.addEventListener('click', (event) => {
             const rect = canvas.getBoundingClientRect();
             const mouseX = event.clientX - rect.left;
             const mouseY = event.clientY - rect.top;
@@ -204,7 +263,7 @@
             const worldX = (mouseX - canvas.width / 2) / scale;
             const worldY = (mouseY - canvas.height / 2) / scale;
 
-            let hoveredPlanet = null;
+            let clickedObject = null;
 
             for (const planet of planets) {
                 const planetX = planet.distance * Math.cos(angle * planet.speed);
@@ -213,7 +272,7 @@
                 const distance = Math.sqrt((worldX - planetX) ** 2 + (worldY - planetY) ** 2);
 
                 if (distance <= planet.radius) {
-                    hoveredPlanet = planet;
+                    clickedObject = planet;
                     break;
                 }
 
@@ -222,16 +281,68 @@
                     const moonY = planetY + moon.distance * Math.sin(angle * moon.speed);
 
                     const moonDistance = Math.sqrt((worldX - moonX) ** 2 + (worldY - moonY) ** 2);
-
                     if (moonDistance <= moon.radius) {
-                        hoveredPlanet = moon;
+                        clickedObject = moon;
                         break;
                     }
                 }
             }
 
-            updatePlanetInfo(hoveredPlanet, event.clientX, event.clientY);
+            if (!clickedObject) {
+                for (const comet of comets) {
+                    const cometX = comet.distance * Math.cos(angle * comet.speed);
+                    const cometY = comet.distance * Math.sin(angle * comet.speed);
+
+                    const distance = Math.sqrt((worldX - cometX) ** 2 + (worldY - cometY) ** 2);
+
+                    if (distance <= comet.radius) {
+                        clickedObject = comet;
+                        break;
+                    }
+                }
+            }
+
+            if (!clickedObject) {
+                for (const satellite of satellites) {
+                    const satelliteX = satellite.distance * Math.cos(angle * satellite.speed);
+                    const satelliteY = satellite.distance * Math.sin(angle * satellite.speed);
+
+                    const distance = Math.sqrt((worldX - satelliteX) ** 2 + (worldY - satelliteY) ** 2);
+
+                    if (distance <= satellite.radius) {
+                        clickedObject = satellite;
+                        break;
+                    }
+                }
+            }
+
+            if (clickedObject) {
+                showObjectDetails(clickedObject);
+            }
         });
+
+        function drawComet(comet, x, y) {
+            ctx.beginPath();
+            ctx.arc(x, y, comet.radius, 0, Math.PI * 2);
+            ctx.fillStyle = comet.color;
+            ctx.fill();
+
+            ctx.beginPath();
+            ctx.moveTo(x, y);
+            ctx.lineTo(x - comet.tailLength * Math.cos(angle * comet.speed), y - comet.tailLength * Math.sin(angle * comet.speed));
+            ctx.strokeStyle = comet.color;
+            ctx.lineWidth = 2;
+            ctx.stroke();
+        }
+
+        function drawMeteor(meteor) {
+            ctx.beginPath();
+            ctx.moveTo(meteor.x, meteor.y);
+            ctx.lineTo(meteor.x - meteor.length * Math.cos(meteor.angle), meteor.y - meteor.length * Math.sin(meteor.angle));
+            ctx.strokeStyle = 'white';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+        }
 
         function animate() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -292,7 +403,63 @@
                 }
             });
 
+            comets.forEach(comet => {
+                const cometX = comet.distance * Math.cos(angle * comet.speed);
+                const cometY = comet.distance * Math.sin(angle * comet.speed);
+
+                if (showOrbits) {
+                    ctx.beginPath();
+                    ctx.arc(0, 0, comet.distance, 0, Math.PI * 2);
+                    ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+                    ctx.stroke();
+                }
+
+                drawComet(comet, cometX, cometY);
+
+                if (showLabels) {
+                    ctx.font = '12px Arial';
+                    ctx.fillStyle = 'white';
+                    ctx.fillText(comet.name, cometX + comet.radius + 3, cometY);
+                }
+            });
+
+            satellites.forEach(satellite => {
+                const satelliteX = satellite.distance * Math.cos(angle * satellite.speed);
+                const satelliteY = satellite.distance * Math.sin(angle * satellite.speed);
+
+                if (showOrbits) {
+                    ctx.beginPath();
+                    ctx.arc(0, 0, satellite.distance, 0, Math.PI * 2);
+                    ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+                    ctx.stroke();
+                }
+
+                ctx.beginPath();
+                ctx.arc(satelliteX, satelliteY, satellite.radius, 0, Math.PI * 2);
+                ctx.fillStyle = satellite.color;
+                ctx.fill();
+
+                if (showLabels) {
+                    ctx.font = '12px Arial';
+                    ctx.fillStyle = 'white';
+                    ctx.fillText(satellite.name, satelliteX + satellite.radius + 3, satelliteY);
+                }
+            });
+
             ctx.restore();
+
+            // Draw meteors
+            meteors.forEach(meteor => {
+                drawMeteor(meteor);
+                meteor.x += meteor.speed * Math.cos(meteor.angle);
+                meteor.y += meteor.speed * Math.sin(meteor.angle);
+
+                if (meteor.x < 0 || meteor.x > canvas.width || meteor.y < 0 || meteor.y > canvas.height) {
+                    meteor.x = Math.random() * canvas.width;
+                    meteor.y = Math.random() * canvas.height;
+                    meteor.angle = Math.random() * Math.PI * 2;
+                }
+            });
 
             if (!paused) {
                 angle += 0.01 * simulationSpeed;
