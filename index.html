@@ -134,39 +134,18 @@
         });
 
         const planets = [
-            { name: 'Sun', distance: 0, radius: 80, color: 'orange', speed: 0, mass: 1.989e30, image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/b/b4/The_Sun_by_the_Atmospheric_Imaging_Assembly_of_NASA%27s_Solar_Dynamics_Observatory_-_20100819.jpg/640px-The_Sun_by_the_Atmospheric_Imaging_Assembly_of_NASA%27s_Solar_Dynamics_Observatory_-_20100819.jpg' },
-            { name: 'Mercury', distance: 120, radius: 10, color: 'gray', speed: 2, mass: 3.285e23, image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d9/Mercury_in_color_-_Prockter07-edit1.jpg/640px-Mercury_in_color_-_Prockter07-edit1.jpg' },
-            { name: 'Venus', distance: 180, radius: 16, color: 'yellow', speed: 1.5, mass: 4.867e24, image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/08/Venus_from_Mariner_10.jpg/640px-Venus_from_Mariner_10.jpg' },
-            { name: 'Earth', distance: 250, radius: 20, color: 'blue', speed: 1, mass: 5.972e24, image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/9/97/The_Earth_seen_from_Apollo_17.jpg/640px-The_Earth_seen_from_Apollo_17.jpg' },
-            { name: 'Mars', distance: 320, radius: 14, color: 'red', speed: 0.9, mass: 6.39e23, image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/02/OSIRIS_Mars_true_color.jpg/640px-OSIRIS_Mars_true_color.jpg' },
-            { name: 'Jupiter', distance: 420, radius: 40, color: 'brown', speed: 0.65, mass: 1.898e27, image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/2/2b/Jupiter_and_its_shrunken_Great_Red_Spot.jpg/640px-Jupiter_and_its_shrunken_Great_Red_Spot.jpg' },
-            { name: 'Saturn', distance: 540, radius: 36, color: 'gold', speed: 0.6, mass: 5.683e26, image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/c/c7/Saturn_during_Equinox.jpg/640px-Saturn_during_Equinox.jpg' },
-            { name: 'Uranus', distance: 660, radius: 28, color: 'lightblue', speed: 0.5, mass: 8.681e25, image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/3/3d/Uranus2.jpg/640px-Uranus2.jpg' },
-            { name: 'Neptune', distance: 780, radius: 28, color: 'darkblue', speed: 0.4, mass: 1.024e26, image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/6/63/Neptune_-_Voyager_2_%2829347980845%29_flatten_crop.jpg/640px-Neptune_-_Voyager_2_%2829347980845%29_flatten_crop.jpg' },
+            { name: 'Sun', distance: 0, radius: 80, speed: 0, mass: 1.989e30, image: 'https://png.pngtree.com/png-clipart/20230518/ourmid/pngtree-realistic-sun-illustration-png-image_7096994.png' },
+            { name: 'Mercury', distance: 120, radius: 10, speed: 2, mass: 3.285e23, image: 'https://static.vecteezy.com/system/resources/previews/020/922/020/original/isolated-realistic-mercury-illustration-png.png' },
+            { name: 'Venus', distance: 180, radius: 16, speed: 1.5, mass: 4.867e24, image: 'https://static.vecteezy.com/system/resources/previews/020/922/026/original/isolated-realistic-venus-surface-illustration-png.png' },
+            { name: 'Earth', distance: 250, radius: 20, speed: 1, mass: 5.972e24, image: 'https://i.pinimg.com/originals/ab/a5/bd/aba5bdbb6a5985ffdf4a73d1729b609a.png' },
+            { name: 'Mars', distance: 320, radius: 14, speed: 0.9, mass: 6.39e23, image: 'https://i.pinimg.com/originals/f8/d6/88/f8d688b8b4c45922162154b35763e04c.png' },
+            { name: 'Jupiter', distance: 420, radius: 40, speed: 0.65, mass: 1.898e27, image: 'https://upload.wikimedia.org/wikipedia/commons/e/e1/Jupiter_%28transparent%29.png' },
+            { name: 'Saturn', distance: 540, radius: 36, speed: 0.6, mass: 5.683e26, image: 'https://png.pngtree.com/png-vector/20240309/ourmid/pngtree-beautiful-planet-saturn-png-image_11898581.png' },
+            { name: 'Uranus', distance: 660, radius: 28, speed: 0.5, mass: 8.681e25, image: 'https://parspng.com/wp-content/uploads/2022/10/uranuspng.parspng.com_.png' },
+            { name: 'Neptune', distance: 780, radius: 28, speed: 0.4, mass: 1.024e26, image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/2/20/Neptune_cutout.png/1200px-Neptune_cutout.png' },
         ];
 
-        const moon = { name: 'Moon', distance: 35, radius: 6, color: 'white', speed: 12, mass: 7.34767309e22, image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e1/FullMoon2010.jpg/640px-FullMoon2010.jpg' };
-
-        const comets = [
-            { name: 'Halley\'s Comet', distance: 900, radius: 5, color: 'cyan', speed: 0.1, tailLength: 50, image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/2/2a/Lspn_comet_halley.jpg/640px-Lspn_comet_halley.jpg' },
-            { name: 'Hale-Bopp', distance: 1000, radius: 6, color: 'lightgreen', speed: 0.08, tailLength: 60, image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/0c/Comet-Hale-Bopp-29-03-1997_hires_adj.jpg/640px-Comet-Hale-Bopp-29-03-1997_hires_adj.jpg' },
-        ];
-
-        const meteors = [];
-        for (let i = 0; i < 5; i++) {
-            meteors.push({
-                x: Math.random() * canvas.width,
-                y: Math.random() * canvas.height,
-                speed: Math.random() * 5 + 2,
-                angle: Math.random() * Math.PI * 2,
-                length: Math.random() * 20 + 10,
-            });
-        }
-
-        const satellites = [
-            { name: 'ISS', distance: 280, radius: 3, color: 'white', speed: 2, image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/04/International_Space_Station_after_undocking_of_STS-132.jpg/640px-International_Space_Station_after_undocking_of_STS-132.jpg' },
-            { name: 'Hubble', distance: 290, radius: 2, color: 'silver', speed: 1.8, image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/3/3f/HST-SM4.jpeg/640px-HST-SM4.jpeg' },
-        ];
+        const moon = { name: 'Moon', distance: 35, radius: 6, speed: 12, mass: 7.34767309e22, image: 'https://i.pinimg.com/originals/fa/86/97/fa869743d08ca95414a50cc0ec1526bd.png' };
 
         const stars = [];
         for (let i = 0; i < 100; i++) {
@@ -204,7 +183,6 @@
                 <p>Distance from Sun: ${object.distance} million km</p>
                 <p>Radius: ${object.radius} thousand km</p>
                 ${object.mass ? `<p>Mass: ${object.mass.toExponential(2)} kg</p>` : ''}
-                ${object.tailLength ? `<p>Tail Length: ${object.tailLength} million km</p>` : ''}
                 <p><a href="https://en.wikipedia.org/wiki/${object.name.replace(' ', '_')}" target="_blank">Learn more on Wikipedia</a></p>
             `;
             objectDetails.style.display = 'block';
@@ -288,60 +266,15 @@
                 }
             }
 
-            if (!clickedObject) {
-                for (const comet of comets) {
-                    const cometX = comet.distance * Math.cos(angle * comet.speed);
-                    const cometY = comet.distance * Math.sin(angle * comet.speed);
-
-                    const distance = Math.sqrt((worldX - cometX) ** 2 + (worldY - cometY) ** 2);
-
-                    if (distance <= comet.radius) {
-                        clickedObject = comet;
-                        break;
-                    }
-                }
-            }
-
-            if (!clickedObject) {
-                for (const satellite of satellites) {
-                    const satelliteX = satellite.distance * Math.cos(angle * satellite.speed);
-                    const satelliteY = satellite.distance * Math.sin(angle * satellite.speed);
-
-                    const distance = Math.sqrt((worldX - satelliteX) ** 2 + (worldY - satelliteY) ** 2);
-
-                    if (distance <= satellite.radius) {
-                        clickedObject = satellite;
-                        break;
-                    }
-                }
-            }
-
             if (clickedObject) {
                 showObjectDetails(clickedObject);
             }
         });
 
-        function drawComet(comet, x, y) {
-            ctx.beginPath();
-            ctx.arc(x, y, comet.radius, 0, Math.PI * 2);
-            ctx.fillStyle = comet.color;
-            ctx.fill();
-
-            ctx.beginPath();
-            ctx.moveTo(x, y);
-            ctx.lineTo(x - comet.tailLength * Math.cos(angle * comet.speed), y - comet.tailLength * Math.sin(angle * comet.speed));
-            ctx.strokeStyle = comet.color;
-            ctx.lineWidth = 2;
-            ctx.stroke();
-        }
-
-        function drawMeteor(meteor) {
-            ctx.beginPath();
-            ctx.moveTo(meteor.x, meteor.y);
-            ctx.lineTo(meteor.x - meteor.length * Math.cos(meteor.angle), meteor.y - meteor.length * Math.sin(meteor.angle));
-            ctx.strokeStyle = 'white';
-            ctx.lineWidth = 2;
-            ctx.stroke();
+        function drawPlanet(planet, x, y) {
+            const img = new Image();
+            img.src = planet.image;
+            ctx.drawImage(img, x - planet.radius, y - planet.radius, planet.radius * 2, planet.radius * 2);
         }
 
         function animate() {
@@ -370,10 +303,7 @@
                     ctx.stroke();
                 }
 
-                ctx.beginPath();
-                ctx.arc(planetX, planetY, planet.radius, 0, Math.PI * 2);
-                ctx.fillStyle = planet.color;
-                ctx.fill();
+                drawPlanet(planet, planetX, planetY);
 
                 if (showLabels) {
                     ctx.font = '12px Arial';
@@ -392,10 +322,7 @@
                         ctx.stroke();
                     }
 
-                    ctx.beginPath();
-                    ctx.arc(moonX, moonY, moon.radius, 0, Math.PI * 2);
-                    ctx.fillStyle = moon.color;
-                    ctx.fill();
+                    drawPlanet(moon, moonX, moonY);
 
                     if (showLabels) {
                         ctx.fillText(moon.name, moonX + moon.radius + 3, moonY);
@@ -403,63 +330,7 @@
                 }
             });
 
-            comets.forEach(comet => {
-                const cometX = comet.distance * Math.cos(angle * comet.speed);
-                const cometY = comet.distance * Math.sin(angle * comet.speed);
-
-                if (showOrbits) {
-                    ctx.beginPath();
-                    ctx.arc(0, 0, comet.distance, 0, Math.PI * 2);
-                    ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
-                    ctx.stroke();
-                }
-
-                drawComet(comet, cometX, cometY);
-
-                if (showLabels) {
-                    ctx.font = '12px Arial';
-                    ctx.fillStyle = 'white';
-                    ctx.fillText(comet.name, cometX + comet.radius + 3, cometY);
-                }
-            });
-
-            satellites.forEach(satellite => {
-                const satelliteX = satellite.distance * Math.cos(angle * satellite.speed);
-                const satelliteY = satellite.distance * Math.sin(angle * satellite.speed);
-
-                if (showOrbits) {
-                    ctx.beginPath();
-                    ctx.arc(0, 0, satellite.distance, 0, Math.PI * 2);
-                    ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
-                    ctx.stroke();
-                }
-
-                ctx.beginPath();
-                ctx.arc(satelliteX, satelliteY, satellite.radius, 0, Math.PI * 2);
-                ctx.fillStyle = satellite.color;
-                ctx.fill();
-
-                if (showLabels) {
-                    ctx.font = '12px Arial';
-                    ctx.fillStyle = 'white';
-                    ctx.fillText(satellite.name, satelliteX + satellite.radius + 3, satelliteY);
-                }
-            });
-
             ctx.restore();
-
-            // Draw meteors
-            meteors.forEach(meteor => {
-                drawMeteor(meteor);
-                meteor.x += meteor.speed * Math.cos(meteor.angle);
-                meteor.y += meteor.speed * Math.sin(meteor.angle);
-
-                if (meteor.x < 0 || meteor.x > canvas.width || meteor.y < 0 || meteor.y > canvas.height) {
-                    meteor.x = Math.random() * canvas.width;
-                    meteor.y = Math.random() * canvas.height;
-                    meteor.angle = Math.random() * Math.PI * 2;
-                }
-            });
 
             if (!paused) {
                 angle += 0.01 * simulationSpeed;
