@@ -119,12 +119,11 @@
         const moon = { name: 'Moon', distance: 20, radius: 1, color: 'white', speed: 12, mass: 7.34767309e22 };
 
         const stars = [];
-        for (let i = 0; i < 200; i++) {
+        for (let i = 0; i < 100; i++) {
             stars.push({
                 x: Math.random() * canvas.width,
                 y: Math.random() * canvas.height,
-                radius: Math.random() * 1.5 + 0.5,
-                color: `rgba(255, 255, 255, ${Math.random() * 0.7 + 0.3})`
+                radius: Math.random() * 1 + 0.5,
             });
         }
 
@@ -132,11 +131,6 @@
         const scaleFactor = 1.1;
         const minScale = 0.1;
         const maxScale = 5;
-        let isDragging = false;
-        let startX = 0;
-        let startY = 0;
-        let offsetX = 0;
-        let offsetY = 0;
         let angle = 0;
         let paused = false;
         let showOrbits = true;
@@ -200,8 +194,12 @@
         canvas.addEventListener('wheel', (event) => {
             event.preventDefault();
 
-            const zoomCenterX = event.clientX - offsetX;
-            const zoomCenterY = event.clientY - offsetY;
+            const rect = canvas.getBoundingClientRect();
+            const mouseX = event.clientX - rect.left;
+            const mouseY = event.clientY - rect.top;
+
+            const zoomCenterX = (mouseX - canvas.width / 2) / scale;
+            const zoomCenterY = (mouseY - canvas.height / 2) / scale;
 
             if (event.deltaY < 0) {
                 scale *= scaleFactor;
@@ -211,52 +209,23 @@
                 if (scale < minScale) scale = minScale;
             }
 
-            offsetX += (1 - scaleFactor) * (zoomCenterX - canvas.width / 2);
-            offsetY += (1 - scaleFactor) * (zoomCenterY - canvas.height / 2);
-
             document.getElementById('zoom-level').textContent = `Zoom: ${Math.round(scale * 100)}%`;
-        });
-
-        canvas.addEventListener('mousedown', (event) => {
-            isDragging = true;
-            startX = event.clientX;
-            startY = event.clientY;
-        });
-
-        canvas.addEventListener('mousemove', (event) => {
-            if (isDragging) {
-                const dx = event.clientX - startX;
-                const dy = event.clientY - startY;
-                startX = event.clientX;
-                startY = event.clientY;
-                offsetX += dx;
-                offsetY += dy;
-            }
-        });
-
-        canvas.addEventListener('mouseup', () => {
-            isDragging = false;
-        });
-
-        canvas.addEventListener('mouseleave', () => {
-            isDragging = false;
         });
 
         function animate() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-            ctx.save();
-            ctx.translate(offsetX + canvas.width / 2, offsetY + canvas.height / 2);
-            ctx.scale(scale, scale);
-
+            // Draw stars
+            ctx.fillStyle = 'white';
             stars.forEach(star => {
                 ctx.beginPath();
-                ctx.arc(star.x / scale - offsetX / scale - canvas.width / (2 * scale),
-                        star.y / scale - offsetY / scale - canvas.height / (2 * scale),
-                        star.radius, 0, Math.PI * 2);
-                ctx.fillStyle = star.color;
+                ctx.arc(star.x, star.y, star.radius, 0, Math.PI * 2);
                 ctx.fill();
             });
+
+            ctx.save();
+            ctx.translate(canvas.width / 2, canvas.height / 2);
+            ctx.scale(scale, scale);
 
             planets.forEach(planet => {
                 const planetX = planet.distance * Math.cos(angle * planet.speed);
