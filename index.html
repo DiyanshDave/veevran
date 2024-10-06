@@ -27,19 +27,17 @@
             right: 10px;
             z-index: 100;
         }
-        button, select {
+        button {
             margin: 5px;
             padding: 5px;
         }
         #planet-info {
             position: absolute;
-            bottom: 10px;
-            left: 10px;
-            z-index: 100;
             background-color: rgba(0, 0, 0, 0.7);
             padding: 10px;
             border-radius: 5px;
             display: none;
+            pointer-events: none;
         }
         #speed-control {
             display: flex;
@@ -86,9 +84,6 @@
         <button id="pause-btn">Pause</button>
         <button id="toggle-orbits-btn">Hide Orbits</button>
         <button id="toggle-labels-btn">Hide Labels</button>
-        <select id="planet-select">
-            <option value="">Select a planet</option>
-        </select>
     </div>
     <div id="planet-info"></div>
 
@@ -105,18 +100,18 @@
         });
 
         const planets = [
-            { name: 'Sun', distance: 0, radius: 20, color: 'orange', speed: 0, mass: 1.989e30 },
-            { name: 'Mercury', distance: 60, radius: 2, color: 'gray', speed: 2, mass: 3.285e23 },
-            { name: 'Venus', distance: 90, radius: 5, color: 'yellow', speed: 1.5, mass: 4.867e24 },
-            { name: 'Earth', distance: 130, radius: 6, color: 'blue', speed: 1, mass: 5.972e24 },
-            { name: 'Mars', distance: 180, radius: 3, color: 'red', speed: 0.9, mass: 6.39e23 },
-            { name: 'Jupiter', distance: 220, radius: 12, color: 'brown', speed: 0.65, mass: 1.898e27 },
-            { name: 'Saturn', distance: 270, radius: 10, color: 'gold', speed: 0.6, mass: 5.683e26 },
-            { name: 'Uranus', distance: 320, radius: 7, color: 'lightblue', speed: 0.5, mass: 8.681e25 },
-            { name: 'Neptune', distance: 360, radius: 7, color: 'darkblue', speed: 0.4, mass: 1.024e26 },
+            { name: 'Sun', distance: 0, radius: 40, color: 'orange', speed: 0, mass: 1.989e30 },
+            { name: 'Mercury', distance: 80, radius: 5, color: 'gray', speed: 2, mass: 3.285e23 },
+            { name: 'Venus', distance: 120, radius: 8, color: 'yellow', speed: 1.5, mass: 4.867e24 },
+            { name: 'Earth', distance: 170, radius: 10, color: 'blue', speed: 1, mass: 5.972e24 },
+            { name: 'Mars', distance: 230, radius: 7, color: 'red', speed: 0.9, mass: 6.39e23 },
+            { name: 'Jupiter', distance: 310, radius: 20, color: 'brown', speed: 0.65, mass: 1.898e27 },
+            { name: 'Saturn', distance: 400, radius: 18, color: 'gold', speed: 0.6, mass: 5.683e26 },
+            { name: 'Uranus', distance: 490, radius: 14, color: 'lightblue', speed: 0.5, mass: 8.681e25 },
+            { name: 'Neptune', distance: 580, radius: 14, color: 'darkblue', speed: 0.4, mass: 1.024e26 },
         ];
 
-        const moon = { name: 'Moon', distance: 20, radius: 1, color: 'white', speed: 12, mass: 7.34767309e22 };
+        const moon = { name: 'Moon', distance: 25, radius: 3, color: 'white', speed: 12, mass: 7.34767309e22 };
 
         const stars = [];
         for (let i = 0; i < 100; i++) {
@@ -140,19 +135,11 @@
         const pauseBtn = document.getElementById('pause-btn');
         const toggleOrbitsBtn = document.getElementById('toggle-orbits-btn');
         const toggleLabelsBtn = document.getElementById('toggle-labels-btn');
-        const planetSelect = document.getElementById('planet-select');
         const planetInfo = document.getElementById('planet-info');
         const speedSlider = document.getElementById('speed-slider');
         const speedValue = document.getElementById('speed-value');
 
-        planets.forEach(planet => {
-            const option = document.createElement('option');
-            option.value = planet.name;
-            option.textContent = planet.name;
-            planetSelect.appendChild(option);
-        });
-
-        function updatePlanetInfo(planet) {
+        function updatePlanetInfo(planet, x, y) {
             if (planet) {
                 planetInfo.innerHTML = `
                     <h3>${planet.name}</h3>
@@ -161,15 +148,12 @@
                     <p>Mass: ${planet.mass.toExponential(2)} kg</p>
                 `;
                 planetInfo.style.display = 'block';
+                planetInfo.style.left = `${x + 10}px`;
+                planetInfo.style.top = `${y + 10}px`;
             } else {
                 planetInfo.style.display = 'none';
             }
         }
-
-        planetSelect.addEventListener('change', (event) => {
-            const selectedPlanet = planets.find(p => p.name === event.target.value);
-            updatePlanetInfo(selectedPlanet);
-        });
 
         pauseBtn.addEventListener('click', () => {
             paused = !paused;
@@ -210,6 +194,43 @@
             }
 
             document.getElementById('zoom-level').textContent = `Zoom: ${Math.round(scale * 100)}%`;
+        });
+
+        canvas.addEventListener('mousemove', (event) => {
+            const rect = canvas.getBoundingClientRect();
+            const mouseX = event.clientX - rect.left;
+            const mouseY = event.clientY - rect.top;
+
+            const worldX = (mouseX - canvas.width / 2) / scale;
+            const worldY = (mouseY - canvas.height / 2) / scale;
+
+            let hoveredPlanet = null;
+
+            for (const planet of planets) {
+                const planetX = planet.distance * Math.cos(angle * planet.speed);
+                const planetY = planet.distance * Math.sin(angle * planet.speed);
+
+                const distance = Math.sqrt((worldX - planetX) ** 2 + (worldY - planetY) ** 2);
+
+                if (distance <= planet.radius) {
+                    hoveredPlanet = planet;
+                    break;
+                }
+
+                if (planet.name === 'Earth') {
+                    const moonX = planetX + moon.distance * Math.cos(angle * moon.speed);
+                    const moonY = planetY + moon.distance * Math.sin(angle * moon.speed);
+
+                    const moonDistance = Math.sqrt((worldX - moonX) ** 2 + (worldY - moonY) ** 2);
+
+                    if (moonDistance <= moon.radius) {
+                        hoveredPlanet = moon;
+                        break;
+                    }
+                }
+            }
+
+            updatePlanetInfo(hoveredPlanet, event.clientX, event.clientY);
         });
 
         function animate() {
